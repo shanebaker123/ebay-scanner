@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reseller Scan Tool</title>
+    <script src="https://unpkg.com"></script>
+    <style>
+        body { font-family: -apple-system, sans-serif; text-align: center; margin: 0; padding: 20px; background: #f4f6f9; }
+        #reader { width: 100%; max-width: 450px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        #result-card { margin-top: 20px; padding: 20px; background: white; border-radius: 12px; max-width: 410px; margin-left: auto; margin-right: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: none; }
+        .profit-high { color: #2e7d32; font-weight: bold; font-size: 24px; }
+        .loading { font-style: italic; color: #666; }
+    </style>
+</head>
+<body>
+    <h2>📋 Personal Sourcing Scanner</h2>
+    <div id="reader"></div>
+    
+    <div id="result-card">
+        <h3 id="item-title">Item Title</h3>
+        <p>Avg Completed Sold Price: <span id="item-price" style="font-weight: bold;">\$0.00</span></p>
+        <p>Est. Net Profit (After Fees & \$2 Buy Cost):</p>
+        <div id="item-profit" class="profit-high">\$0.00</div>
+    </div>
+
+    <script>
+        let isScanning = true;
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (!isScanning) return;
+            isScanning = false; // Pause scanner while looking up data
+
+            const card = document.getElementById('result-card');
+            card.style.display = "block";
+            document.getElementById('item-title').className = "loading";
+            document.getElementById('item-title').innerText = "Looking up item details and eBay comps...";
+            document.getElementById('item-price').innerText = "---";
+            document.getElementById('item-profit').innerText = "---";
+
+            fetch(`/lookup?barcode=${decodedText}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('item-title').className = "";
+                    document.getElementById('item-title').innerText = data.title;
+                    document.getElementById('item-price').innerText = `$${data.avg_sold}`;
+                    document.getElementById('item-profit').innerText = `$${data.profit}`;
+                    
+                    // Resume scanning after 4 seconds
+                    setTimeout(() => { isScanning = true; }, 4000);
+                })
+                .catch(err => {
+                    document.getElementById('item-title').innerText = "Error pulling data. Try again.";
+                    setTimeout(() => { isScanning = true; }, 3000);
+                });
+        }
+
+        let html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 6, qrbox: {width: 250, height: 150} });
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+</body>
+</html>
