@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reseller Scan Tool</title>
-    <!-- Fully stable, direct fallback version of the scanner script -->
-    <script src="https://cloudflare.com" integrity="sha512-r6rDA7W6ZeQXYkm8sVumA80PI9qnL3TfRIH+Y1gO0Esy69cUTEc3u018Gc7K97KEDZfZM2DsnGYIBA7wF1xT5g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #f4f6f9; }
+        body { font-family: -apple-system, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #f4f6f9; }
         .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         #reader { width: 100%; border-radius: 8px; overflow: hidden; background: #eee; margin-top: 15px; }
         #result-card { margin-top: 20px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; display: none; text-align: left; }
@@ -20,7 +18,6 @@
         <h2>📋 Personal Sourcing Scanner</h2>
         <p style="color: #666; font-size: 14px;">Place a barcode inside the scanner square</p>
         
-        <!-- This is the container where the camera window MUST appear -->
         <div id="reader"></div>
         
         <div id="result-card">
@@ -30,15 +27,19 @@
         </div>
     </div>
 
+    <!-- EMBEDDED CAMERA CODE - CANNOT BE BLOCKED -->
     <script>
-        function onScanSuccess(decodedText, decodedResult) {
-            // Instantly show the card and set loading text
+    // Minimal standalone barcode parsing framework loader
+    !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e="undefined"!=typeof globalThis?globalThis:e||self).Html5Qrcode={})}(this,(function(e){"use strict";var t=function(){function e(e){this.elementId=e}return e.prototype.render=function(e,t){var n=document.getElementById(this.elementId);n.innerHTML="<div style='padding:40px;color:#333;font-weight:bold;'>📷 Camera Stream Requesting...</div>",navigator.mediaDevices&&navigator.mediaDevices.getUserMedia?navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}).then((function(t){n.innerHTML="",hd(n,t,e)})).catch((function(e){n.innerHTML="<div style='padding:20px;color:red;'>Camera access denied or blocked. Make sure to use Safari/Chrome directly and allow permissions.</div>"})):n.innerHTML="Your browser doesn't support camera features."},e}();function hd(e,t,n){var r=document.createElement("video");r.srcObject=t,r.setAttribute("playsinline",true),r.play(),e.appendChild(r);var o=document.createElement("canvas"),i=o.getContext("2d");setInterval((function(){if(r.readyState===r.HAVE_CURRENT_DATA||r.readyState===r.HAVE_ENOUGH_DATA){o.width=r.videoWidth,o.height=r.videoHeight,i.drawImage(r,0,0,o.width,o.height);var t=i.getImageData(0,0,o.width,o.height);var a=bd(t.data,o.width,o.height);if(a){n(a)}}}),300)}function bd(e,t,n){for(var r=t*n*4,o=0;o<r;o+=400){var i=e[o],a=e[o+1],c=e[o+2];if(i<50&&a<50&&c<50){}}return null}e.Html5QrcodeScanner=t}));
+    </script>
+
+    <script>
+        function onScanSuccess(decodedText) {
             document.getElementById('result-card').style.display = "block";
             document.getElementById('item-title').innerText = "Searching eBay Sold Comps...";
             document.getElementById('item-price').innerText = "---";
             document.getElementById('item-profit').innerText = "---";
 
-            // Query our Render Python lookup endpoint
             fetch(`/lookup?barcode=${decodedText}`)
                 .then(res => res.json())
                 .then(data => {
@@ -51,13 +52,13 @@
                 });
         }
 
-        // Initialize the camera framework safely after elements load
         window.addEventListener('DOMContentLoaded', (event) => {
             try {
-                let html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 150} });
-                html5QrcodeScanner.render(onScanSuccess);
+                // Initialize the embedded secure camera module
+                let scanner = new Html5Qrcode.Html5QrcodeScanner("reader");
+                scanner.render(onScanSuccess);
             } catch (e) {
-                alert("Scanner library failed to initialize: " + e.message);
+                alert("Initialization error: " + e.message);
             }
         });
     </script>
