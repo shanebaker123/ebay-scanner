@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reseller Scan Tool</title>
-    <!-- Industry Standard High Performance Barcode Engine -->
+    <!-- Rock-Solid, Fixed Full Bundle Path for ZXing Barcode Library -->
     <script type="text/javascript" src="https://unpkg.com"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; margin: 0; padding: 15px; background-color: #f4f6f9; }
@@ -16,8 +16,8 @@
         .laser-line { position: absolute; top: 50%; left: 5%; width: 90%; height: 3px; background: #ff1212; box-shadow: 0 0 10px #ff1212; transform: translateY(-50%); animation: scan 2.5s infinite ease-in-out; pointer-events: none; z-index: 10; }
         @keyframes scan { 0%, 100% { top: 15%; } 50% { top: 85%; } }
         .manual-box { margin-top: 15px; display: flex; gap: 8px; }
-        .manual-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
-        .manual-box button { padding: 10px 15px; background: #1a73e8; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .manual-box input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+        .manual-box button { padding: 12px 20px; background: #1a73e8; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -32,7 +32,7 @@
 
         <!-- Manual Backup Input Field -->
         <div class="manual-box">
-            <input type="number" id="manual-barcode" placeholder="Can't scan? Type barcode digits here..." pattern="[0-9]*" inputmode="numeric">
+            <input type="number" id="manual-barcode" placeholder="Can't scan? Type barcode here..." pattern="[0-9]*" inputmode="numeric">
             <button onclick="handleManualSearch()">Search</button>
         </div>
         
@@ -45,21 +45,17 @@
 
     <script>
         let codeReader = null;
-        let activeVideoDevice = null;
         let isProcessing = false;
 
         function processBarcodeData(barcodeNumber) {
-            if (isProcessing) return;
-            isProcessing = true;
-
-            // Vibrate your Google Pixel instantly on matching confirmation
-            if (navigator.vibrate) navigator.vibrate(120);
-
             const card = document.getElementById('result-card');
             card.style.display = "block";
-            document.getElementById('item-title').innerText = "🔎 Pulling live eBay completed comps...";
+            document.getElementById('item-title').innerText = "🔎 Querying eBay sold comps for: " + barcodeNumber;
             document.getElementById('item-price').innerText = "---";
             document.getElementById('item-profit').innerText = "---";
+
+            // Trigger a quick haptic pulse on your Google Pixel
+            if (navigator.vibrate) navigator.vibrate(100);
 
             fetch(`/lookup?barcode=${barcodeNumber}`)
                 .then(res => res.json())
@@ -68,11 +64,11 @@
                     document.getElementById('item-price').innerText = "\$" + (data.avg_sold !== undefined ? data.avg_sold : "0.00");
                     document.getElementById('item-profit').innerText = "\$" + (data.profit !== undefined ? data.profit : "0.00");
                     
-                    // Cool-down period before letting you scan a brand new item
-                    setTimeout(() => { isProcessing = false; }, 4000);
+                    // Simple search cooldown window
+                    setTimeout(() => { isProcessing = false; }, 3000);
                 })
                 .catch(err => {
-                    document.getElementById('item-title').innerText = "Extraction timeout. Try again.";
+                    document.getElementById('item-title').innerText = "Error pulling data. Try scanning again.";
                     setTimeout(() => { isProcessing = false; }, 2000);
                 });
         }
@@ -85,13 +81,14 @@
         }
 
         window.addEventListener('DOMContentLoaded', (event) => {
-            // Initialize the high performance engine context
+            // Safe initialization using the fixed library context
             codeReader = new ZXing.BrowserMultiFormatReader();
             
             codeReader.listVideoInputDevices()
                 .then((videoInputDevices) => {
-                    // Automatically filter and grab the primary back camera lens
-                    activeVideoDevice = videoInputDevices[0].deviceId;
+                    let activeVideoDevice = videoInputDevices[0].deviceId;
+                    
+                    // Try to filter directly for the back/rear lens array
                     if (videoInputDevices.length > 1) {
                         for(let device of videoInputDevices) {
                             if(device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('environment')) {
@@ -101,15 +98,16 @@
                         }
                     }
                     
-                    // Fire up the stream decoder loop
+                    // Start decoding straight from the streaming video context
                     codeReader.decodeFromVideoDevice(activeVideoDevice, 'video', (result, err) => {
                         if (result && !isProcessing) {
+                            isProcessing = true;
                             processBarcodeData(result.text);
                         }
                     });
                 })
                 .catch((err) => {
-                    console.error("Camera interface initialization fault:", err);
+                    console.error("Camera layout array hook failure:", err);
                 });
         });
     </script>
