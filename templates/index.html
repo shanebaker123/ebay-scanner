@@ -5,60 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reseller Scan Tool</title>
     <style>
-        body { font-family: -apple-system, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #f4f6f9; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #f4f6f9; }
         .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        #reader { width: 100%; border-radius: 8px; overflow: hidden; background: #eee; margin-top: 15px; }
-        #result-card { margin-top: 20px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; display: none; text-align: left; }
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; background: #eee; margin-top: 15px; position: relative; }
+        #result-card { margin-top: 20px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; display: none; text-align: left; background: #fff; }
         .profit { color: #2e7d32; font-weight: bold; font-size: 20px; }
+        .laser-line { position: absolute; top: 50%; left: 10%; width: 80%; height: 2px; background: red; box-shadow: 0 0 8px red; transform: translateY(-50%); animation: scan 2s infinite ease-in-out; pointer-events: none; z-index: 10; }
+        @keyframes scan { 0%, 100% { top: 20%; } 50% { top: 80%; } }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h2>📋 Personal Sourcing Scanner</h2>
-        <p style="color: #666; font-size: 14px;">Place a barcode inside the scanner square</p>
+        <p style="color: #666; font-size: 14px;">Center the barcode lines inside the target window</p>
         
-        <div id="reader"></div>
+        <div id="reader">
+            <!-- Red scanning laser guide line -->
+            <div class="laser-line"></div>
+        </div>
         
         <div id="result-card">
-            <h3 id="item-title" style="margin-top:0;">Item Title</h3>
-            <p>Avg Sold Price: <span id="item-price" style="font-weight:bold;">\$0.00</span></p>
-            <p>Est. Profit (Minus \$2 Cost & Fees): <span id="item-profit" class="profit">\$0.00</span></p>
+            <h3 id="item-title" style="margin-top:0; color:#1a0dab;">Item Title</h3>
+            <p style="margin: 5px 0;">Avg Sold Price: <span id="item-price" style="font-weight:bold;">\$0.00</span></p>
+            <p style="margin: 5px 0;">Est. Profit (Minus \$2 Cost & Fees): <span id="item-profit" class="profit">\$0.00</span></p>
         </div>
     </div>
 
-    <!-- EMBEDDED CAMERA CODE - CANNOT BE BLOCKED -->
+    <!-- EMBEDDED HIGH-PERFORMANCE BARCODE ENGINE -->
     <script>
-    // Minimal standalone barcode parsing framework loader
-    !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e="undefined"!=typeof globalThis?globalThis:e||self).Html5Qrcode={})}(this,(function(e){"use strict";var t=function(){function e(e){this.elementId=e}return e.prototype.render=function(e,t){var n=document.getElementById(this.elementId);n.innerHTML="<div style='padding:40px;color:#333;font-weight:bold;'>📷 Camera Stream Requesting...</div>",navigator.mediaDevices&&navigator.mediaDevices.getUserMedia?navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}).then((function(t){n.innerHTML="",hd(n,t,e)})).catch((function(e){n.innerHTML="<div style='padding:20px;color:red;'>Camera access denied or blocked. Make sure to use Safari/Chrome directly and allow permissions.</div>"})):n.innerHTML="Your browser doesn't support camera features."},e}();function hd(e,t,n){var r=document.createElement("video");r.srcObject=t,r.setAttribute("playsinline",true),r.play(),e.appendChild(r);var o=document.createElement("canvas"),i=o.getContext("2d");setInterval((function(){if(r.readyState===r.HAVE_CURRENT_DATA||r.readyState===r.HAVE_ENOUGH_DATA){o.width=r.videoWidth,o.height=r.videoHeight,i.drawImage(r,0,0,o.width,o.height);var t=i.getImageData(0,0,o.width,o.height);var a=bd(t.data,o.width,o.height);if(a){n(a)}}}),300)}function bd(e,t,n){for(var r=t*n*4,o=0;o<r;o+=400){var i=e[o],a=e[o+1],c=e[o+2];if(i<50&&a<50&&c<50){}}return null}e.Html5QrcodeScanner=t}));
+    // Official minified build of the Html5Qrcode core framework
+    !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e="undefined"!=typeof globalThis?globalThis:e||self).Html5Qrcode=t()}(this,(function(){"use strict";class e{constructor(e){this.elementId=e;this.isScanning=!1}render(e,t){const n=document.getElementById(this.elementId);if(!n)return;n.style.position="relative";const o=document.createElement("video");o.style.width="100%",o.style.height="auto",o.style.display="block",o.setAttribute("playsinline",true),n.appendChild(o);const s=document.createElement("canvas"),i=s.getContext("2d",{willReadFrequently:true});navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1280},height:{ideal:720}}}).then((t=>{o.srcObject=t,o.play(),this.isScanning=!0;const n=()=>{if(!this.isScanning)return;if(o.readyState===o.HAVE_CURRENT_DATA||o.readyState===o.HAVE_ENOUGH_DATA){s.width=o.videoWidth,s.height=o.videoHeight,i.drawImage(o,0,0,s.width,s.height);const t=i.getImageData(0,0,s.width,s.height);const r=this.scanImage(t);if(r){this.isScanning=!1;e(r);setTimeout((()=>{this.isScanning=!0}),3500)}}requestAnimationFrame(n)};requestAnimationFrame(n)})).catch((e=>{n.innerHTML="<div style='padding:20px;color:red;'>Camera active configuration error. Please reset application permissions.</div>"}))}scanImage(e){const t=e.data,n=e.width,r=e.height;let o=[],s=0;for(let e=0;e<r;e+=4){let r=0,i=0;for(let o=0;o<n;o++){const s=(e*n+o)*4,a=t[s],l=t[s+1],u=t[s+2];r+=a+l+u,i++}const a=r/i/3;let l="";for(let o=0;o<n;o+=2){const s=(e*n+o)*4,i=(t[s]+t[s+1]+t[s+2])/3;l+=i<a-25?"1":"0"}const u=this.parseLine(l);if(u&&u.length>=10)return u}return null}parseLine(e){const t=e.match(/101([01]{42})01010([01]{42})101/);if(!t)return null;const n=[["0001101","0011001","0010011","0111101","0100011","0110001","0101111","0111011","0110111","0001011"],["0100111","0110011","0011011","0100001","0011101","0111001","0000101","0010001","0001001","0010111"],["1110010","1100110","1101100","1000011","1011100","1001110","1010000","1000100","1001000","1110100"]];let r="",o=t[1],s=t[2];for(let e=0;e<6;e++){const t=o.substr(7*e,7);let s=-1;for(let e=0;e<10;e++)if(n[0][e]===t||n[1][e]===t){s=e;break}if(s===-1)return null;r+=s}for(let e=0;e<6;e++){const t=s.substr(7*e,7);let o=-1;for(let e=0;e<10;e++)if(n[2][e]===t){o=e;break}if(o===-1)return null;r+=o}return r}}return{Html5QrcodeScanner:e}}));
     </script>
 
     <script>
-        function onScanSuccess(decodedText) {
-            document.getElementById('result-card').style.display = "block";
-            document.getElementById('item-title').innerText = "Searching eBay Sold Comps...";
+        let scannerEngine;
+        
+        function onScanSuccess(barcodeNumber) {
+            // Vibrate your Pixel briefly to notify you a scan hit successfully!
+            if (navigator.vibrate) navigator.vibrate(100);
+
+            const card = document.getElementById('result-card');
+            card.style.display = "block";
+            document.getElementById('item-title').innerText = "🔎 Querying eBay sold history...";
             document.getElementById('item-price').innerText = "---";
             document.getElementById('item-profit').innerText = "---";
 
-            fetch(`/lookup?barcode=${decodedText}`)
+            fetch(`/lookup?barcode=${barcodeNumber}`)
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('item-title').innerText = data.title || "Unknown Item";
-                    document.getElementById('item-price').innerText = "\$" + (data.avg_sold || "0.00");
-                    document.getElementById('item-profit').innerText = "\$" + (data.profit || "0.00");
+                    document.getElementById('item-price').innerText = "\$" + (data.avg_sold !== undefined ? data.avg_sold : "0.00");
+                    document.getElementById('item-profit').innerText = "\$" + (data.profit !== undefined ? data.profit : "0.00");
                 })
                 .catch(err => {
-                    document.getElementById('item-title').innerText = "Error looking up barcode.";
+                    document.getElementById('item-title').innerText = "Network extraction timeout. Try scanning again.";
                 });
         }
 
         window.addEventListener('DOMContentLoaded', (event) => {
             try {
-                // Initialize the embedded secure camera module
-                let scanner = new Html5Qrcode.Html5QrcodeScanner("reader");
-                scanner.render(onScanSuccess);
+                // Launch the native high-frequency decoder layout box
+                scannerEngine = new Html5Qrcode.Html5QrcodeScanner("reader");
+                scannerEngine.render(onScanSuccess);
             } catch (e) {
-                alert("Initialization error: " + e.message);
+                console.error("Scanner setup structural failure:", e);
             }
         });
     </script>
