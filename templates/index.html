@@ -4,25 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reseller Scan Tool</title>
+    <!-- Industry Standard High Performance Barcode Engine -->
+    <script type="text/javascript" src="https://unpkg.com"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #f4f6f9; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        #reader { width: 100%; border-radius: 8px; overflow: hidden; background: #eee; margin-top: 15px; position: relative; }
-        #result-card { margin-top: 20px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; display: none; text-align: left; background: #fff; }
-        .profit { color: #2e7d32; font-weight: bold; font-size: 20px; }
-        .laser-line { position: absolute; top: 50%; left: 10%; width: 80%; height: 2px; background: red; box-shadow: 0 0 8px red; transform: translateY(-50%); animation: scan 2s infinite ease-in-out; pointer-events: none; z-index: 10; }
-        @keyframes scan { 0%, 100% { top: 20%; } 50% { top: 80%; } }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; margin: 0; padding: 15px; background-color: #f4f6f9; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        #video-container { width: 100%; border-radius: 8px; overflow: hidden; background: #222; margin-top: 15px; position: relative; aspect-ratio: 4/3; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        #result-card { margin-top: 15px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; display: none; text-align: left; background: #fff; }
+        .profit { color: #2e7d32; font-weight: bold; font-size: 22px; }
+        .laser-line { position: absolute; top: 50%; left: 5%; width: 90%; height: 3px; background: #ff1212; box-shadow: 0 0 10px #ff1212; transform: translateY(-50%); animation: scan 2.5s infinite ease-in-out; pointer-events: none; z-index: 10; }
+        @keyframes scan { 0%, 100% { top: 15%; } 50% { top: 85%; } }
+        .manual-box { margin-top: 15px; display: flex; gap: 8px; }
+        .manual-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+        .manual-box button { padding: 10px 15px; background: #1a73e8; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h2>📋 Personal Sourcing Scanner</h2>
-        <p style="color: #666; font-size: 14px;">Center the barcode lines inside the target window</p>
         
-        <div id="reader">
-            <!-- Red scanning laser guide line -->
+        <div id="video-container">
+            <video id="video"></video>
             <div class="laser-line"></div>
+        </div>
+
+        <!-- Manual Backup Input Field -->
+        <div class="manual-box">
+            <input type="number" id="manual-barcode" placeholder="Can't scan? Type barcode digits here..." pattern="[0-9]*" inputmode="numeric">
+            <button onclick="handleManualSearch()">Search</button>
         </div>
         
         <div id="result-card">
@@ -32,22 +43,21 @@
         </div>
     </div>
 
-    <!-- EMBEDDED HIGH-PERFORMANCE BARCODE ENGINE -->
     <script>
-    // Official minified build of the Html5Qrcode core framework
-    !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e="undefined"!=typeof globalThis?globalThis:e||self).Html5Qrcode=t()}(this,(function(){"use strict";class e{constructor(e){this.elementId=e;this.isScanning=!1}render(e,t){const n=document.getElementById(this.elementId);if(!n)return;n.style.position="relative";const o=document.createElement("video");o.style.width="100%",o.style.height="auto",o.style.display="block",o.setAttribute("playsinline",true),n.appendChild(o);const s=document.createElement("canvas"),i=s.getContext("2d",{willReadFrequently:true});navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1280},height:{ideal:720}}}).then((t=>{o.srcObject=t,o.play(),this.isScanning=!0;const n=()=>{if(!this.isScanning)return;if(o.readyState===o.HAVE_CURRENT_DATA||o.readyState===o.HAVE_ENOUGH_DATA){s.width=o.videoWidth,s.height=o.videoHeight,i.drawImage(o,0,0,s.width,s.height);const t=i.getImageData(0,0,s.width,s.height);const r=this.scanImage(t);if(r){this.isScanning=!1;e(r);setTimeout((()=>{this.isScanning=!0}),3500)}}requestAnimationFrame(n)};requestAnimationFrame(n)})).catch((e=>{n.innerHTML="<div style='padding:20px;color:red;'>Camera active configuration error. Please reset application permissions.</div>"}))}scanImage(e){const t=e.data,n=e.width,r=e.height;let o=[],s=0;for(let e=0;e<r;e+=4){let r=0,i=0;for(let o=0;o<n;o++){const s=(e*n+o)*4,a=t[s],l=t[s+1],u=t[s+2];r+=a+l+u,i++}const a=r/i/3;let l="";for(let o=0;o<n;o+=2){const s=(e*n+o)*4,i=(t[s]+t[s+1]+t[s+2])/3;l+=i<a-25?"1":"0"}const u=this.parseLine(l);if(u&&u.length>=10)return u}return null}parseLine(e){const t=e.match(/101([01]{42})01010([01]{42})101/);if(!t)return null;const n=[["0001101","0011001","0010011","0111101","0100011","0110001","0101111","0111011","0110111","0001011"],["0100111","0110011","0011011","0100001","0011101","0111001","0000101","0010001","0001001","0010111"],["1110010","1100110","1101100","1000011","1011100","1001110","1010000","1000100","1001000","1110100"]];let r="",o=t[1],s=t[2];for(let e=0;e<6;e++){const t=o.substr(7*e,7);let s=-1;for(let e=0;e<10;e++)if(n[0][e]===t||n[1][e]===t){s=e;break}if(s===-1)return null;r+=s}for(let e=0;e<6;e++){const t=s.substr(7*e,7);let o=-1;for(let e=0;e<10;e++)if(n[2][e]===t){o=e;break}if(o===-1)return null;r+=o}return r}}return{Html5QrcodeScanner:e}}));
-    </script>
+        let codeReader = null;
+        let activeVideoDevice = null;
+        let isProcessing = false;
 
-    <script>
-        let scannerEngine;
-        
-        function onScanSuccess(barcodeNumber) {
-            // Vibrate your Pixel briefly to notify you a scan hit successfully!
-            if (navigator.vibrate) navigator.vibrate(100);
+        function processBarcodeData(barcodeNumber) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            // Vibrate your Google Pixel instantly on matching confirmation
+            if (navigator.vibrate) navigator.vibrate(120);
 
             const card = document.getElementById('result-card');
             card.style.display = "block";
-            document.getElementById('item-title').innerText = "🔎 Querying eBay sold history...";
+            document.getElementById('item-title').innerText = "🔎 Pulling live eBay completed comps...";
             document.getElementById('item-price').innerText = "---";
             document.getElementById('item-profit').innerText = "---";
 
@@ -57,20 +67,50 @@
                     document.getElementById('item-title').innerText = data.title || "Unknown Item";
                     document.getElementById('item-price').innerText = "\$" + (data.avg_sold !== undefined ? data.avg_sold : "0.00");
                     document.getElementById('item-profit').innerText = "\$" + (data.profit !== undefined ? data.profit : "0.00");
+                    
+                    // Cool-down period before letting you scan a brand new item
+                    setTimeout(() => { isProcessing = false; }, 4000);
                 })
                 .catch(err => {
-                    document.getElementById('item-title').innerText = "Network extraction timeout. Try scanning again.";
+                    document.getElementById('item-title').innerText = "Extraction timeout. Try again.";
+                    setTimeout(() => { isProcessing = false; }, 2000);
                 });
         }
 
-        window.addEventListener('DOMContentLoaded', (event) => {
-            try {
-                // Launch the native high-frequency decoder layout box
-                scannerEngine = new Html5Qrcode.Html5QrcodeScanner("reader");
-                scannerEngine.render(onScanSuccess);
-            } catch (e) {
-                console.error("Scanner setup structural failure:", e);
+        function handleManualSearch() {
+            const digits = document.getElementById('manual-barcode').value.trim();
+            if (digits) {
+                processBarcodeData(digits);
             }
+        }
+
+        window.addEventListener('DOMContentLoaded', (event) => {
+            // Initialize the high performance engine context
+            codeReader = new ZXing.BrowserMultiFormatReader();
+            
+            codeReader.listVideoInputDevices()
+                .then((videoInputDevices) => {
+                    // Automatically filter and grab the primary back camera lens
+                    activeVideoDevice = videoInputDevices[0].deviceId;
+                    if (videoInputDevices.length > 1) {
+                        for(let device of videoInputDevices) {
+                            if(device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('environment')) {
+                                activeVideoDevice = device.deviceId;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Fire up the stream decoder loop
+                    codeReader.decodeFromVideoDevice(activeVideoDevice, 'video', (result, err) => {
+                        if (result && !isProcessing) {
+                            processBarcodeData(result.text);
+                        }
+                    });
+                })
+                .catch((err) => {
+                    console.error("Camera interface initialization fault:", err);
+                });
         });
     </script>
 </body>
